@@ -1,3 +1,4 @@
+import json
 import uuid
 
 
@@ -9,3 +10,23 @@ class Log:
         self.response = response
         self.latency = latency
         self.date = date
+
+
+class Metric:
+    def __init__(self, passed, failed, avgLantency, minLantency, maxLantency):
+        super().__init__()
+        self.passed = passed
+        self.failed = failed
+        self.avgLatency = avgLantency
+        self.minLatency = minLantency
+        self.maxLatency = maxLantency
+
+
+class Metrics:
+    def __init__(self, convertM, rocketM, qrM):
+        self.convert = convertM
+        self.rocket = rocketM
+        self.qr = qrM
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, indent=4)

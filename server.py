@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler
 from urllib import parse
 import datetime
 import database
-from log import Log
+from log import Log, Metrics
 
 PORT = 8000
 
@@ -36,14 +36,14 @@ class HttpHandler(BaseHTTPRequestHandler):
                 rate = result.json()["rates"]["RON"]
                 timestamp = result.json()["timestamp"]
                 self.send_response(200)
-                self.send_header('Content-type', 'text-html')
+                self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({"rate": rate,"timestamp": timestamp}).encode())
 
                 log = Log(1, str({"symbols": "RON", "format": 1}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs1(log)
+                db.insertLogConvert(log)
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -53,7 +53,7 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(0, str({"symbols": "RON", "format": 1}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs1(log)
+                db.insertLogConvert(log)
 
         if path.startswith("/rocket"):
             rocketId = path[path.rfind("/") + 1:]
@@ -62,17 +62,23 @@ class HttpHandler(BaseHTTPRequestHandler):
             print(result.content)
 
             if result.status_code == 200:
-                cost = result.json()["cost_per_launch"]
-                rocketName = result.json()["rocket_name"]
+                r = result.json()
+                rocket = {"rocketName": r["rocket_name"],
+                          "costPerLaunch": r["cost_per_launch"],
+                          "firstFlight": r["first_flight"],
+                          "height": r["height"]["meters"],
+                          "diameter": r["diameter"]["meters"],
+                          "mass": r["mass"]["kg"],
+                          "engines": r["engines"]["number"]}
                 self.send_response(200)
-                self.send_header('Content-type', 'text-html')
+                self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(result.json()).encode())
+                self.wfile.write(json.dumps(rocket).encode())
 
                 log = Log(1, str({"rocketId": rocketId}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs2(log)
+                db.insertLogRocket(log)
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -82,7 +88,16 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(0, str({"rocketId": rocketId}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs2(log)
+                db.insertLogRocket(log)
+
+        if path == "/metrics":
+            metrics = Metrics(db.metricConvert(), db.metricRocket(), db.metricQr())
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(metrics.toJSON().encode())
 
         db.conn.close()
         return
@@ -112,7 +127,7 @@ class HttpHandler(BaseHTTPRequestHandler):
                 log = Log(1, str({"size": data["size"], "data": data["data"]}), result.content,
                           result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs3(log)
+                db.insertLogQr(log)
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -123,7 +138,7 @@ class HttpHandler(BaseHTTPRequestHandler):
                 log = Log(0, str({"size": data["size"], "data": data["data"]}), result.content,
                           result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogWs3(log)
+                db.insertLogQr(log)
 
         db.conn.close()
         return
