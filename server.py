@@ -5,6 +5,7 @@ import requests
 from http.server import BaseHTTPRequestHandler
 from urllib import parse
 import datetime
+import base64
 import database
 from log import Log, Metrics
 
@@ -35,11 +36,12 @@ class HttpHandler(BaseHTTPRequestHandler):
             if result.status_code == 200:
                 rate = result.json()["rates"]["RON"]
                 timestamp = result.json()["timestamp"]
+                converted = float(rate) * float(args["amount"][0])
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({"rate": rate,"timestamp": timestamp}).encode())
+                self.wfile.write(json.dumps({"rate": rate, "timestamp": timestamp, "converted": converted}).encode())
 
                 log = Log(1, str({"symbols": "RON", "format": 1}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
@@ -107,7 +109,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         path = self.path
         len = int(self.headers['Content-Length'])
         data = json.loads(self.rfile.read(len))
-
+        print(data)
         if path == "/qr":
             url = "https://api.qrserver.com/v1/create-qr-code"
             queryParams = {"size": data["size"], "data": data["data"]}
@@ -118,11 +120,10 @@ class HttpHandler(BaseHTTPRequestHandler):
             if result.status_code == 200:
 
                 self.send_response(200)
-                self.send_header('Content-type', 'text-html')
+                self.send_header('Content-Type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Content-Type', 'image/png')
                 self.end_headers()
-                self.wfile.write(result.content)
+                self.wfile.write(bytes(json.dumps({"qr": str(base64.b64encode(result.content))}), "utf-8"))
 
                 log = Log(1, str({"size": data["size"], "data": data["data"]}), result.content,
                           result.elapsed.total_seconds(),
@@ -142,6 +143,14 @@ class HttpHandler(BaseHTTPRequestHandler):
 
         db.conn.close()
         return
+
+    def do_OPTIONS(self):
+        self.send_response(200, "ok")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
 
 if __name__ == "__main__":
