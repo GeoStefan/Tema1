@@ -1,0 +1,13 @@
+<div style="display:flex; flex-direction: column; justify-content: center; align-items: center; margin-top: 5rem;">
+  <div style="width:30rem;">
+    <form class="example-form">
+      <mat-form-field class="example-full-width">
+        <input matInput placeholder="Value in EURO" [(ngModel)]="amount" name="amount">
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="onConvert()" style="margin-left:2rem;">Convert</button>
+    </form>
+  </div>
+  <div style="width:30rem;">
+    <strong>Result: {{result}} RON</strong>
+  </div>
+</div>

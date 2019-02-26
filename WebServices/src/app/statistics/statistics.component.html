@@ -1,0 +1,42 @@
+<div class="flex-container">
+  <div style="width:60rem;">
+    <table mat-table [dataSource]="dataTable" class="mat-elevation-z8" style="margin-top: 5rem;">
+
+      <ng-container matColumnDef="Service">
+        <th mat-header-cell *matHeaderCellDef> Service </th>
+        <td mat-cell *matCellDef="let element"> {{element.service}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Passedrequests">
+        <th mat-header-cell *matHeaderCellDef> Passed requests </th>
+        <td mat-cell *matCellDef="let element"> {{element.passed}} </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="Failedrequests">
+        <th mat-header-cell *matHeaderCellDef> Failed requests </th>
+        <td mat-cell *matCellDef="let element"> {{element.failed}} </td>
+      </ng-container>
+
+      <!-- Weight Column -->
+      <ng-container matColumnDef="Averagelatency">
+        <th mat-header-cell *matHeaderCellDef> Average latency </th>
+        <td mat-cell *matCellDef="let element"> {{element.avgLatency}} </td>
+      </ng-container>
+
+      <!-- Symbol Column -->
+      <ng-container matColumnDef="Maxlatency">
+        <th mat-header-cell *matHeaderCellDef> Max latency </th>
+        <td mat-cell *matCellDef="let element"> {{element.maxLatency}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Minlatency">
+        <th mat-header-cell *matHeaderCellDef> Min latency </th>
+        <td mat-cell *matCellDef="let element"> {{element.minLatency}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

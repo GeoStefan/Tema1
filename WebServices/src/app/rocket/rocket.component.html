@@ -1,0 +1,23 @@
+<div style="display:flex; flex-direction: column; justify-content: center; align-items: center;">
+
+  <div>
+    <h3>Available rockets: </h3>
+    <p>falcon9, falconheavy, falcon1, bfr</p>
+  </div>
+
+  <form class="example-form margins">
+    <mat-form-field class="example-full-width">
+      <input matInput placeholder="Rocket id" [(ngModel)]="rocketId" name="rocketId">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="onGetRocket()" style="margin-left:2rem;">About</button>
+  </form>
+  <mat-list>
+    <mat-list-item><strong>Rocket name:</strong> {{rocket.rocketName}} </mat-list-item>
+    <mat-list-item><strong>Cost per launch:</strong> {{rocket.costPerLaunch}} EUR</mat-list-item>
+    <mat-list-item><strong>First flight:</strong> {{rocket.firstFlight}}</mat-list-item>
+    <mat-list-item><strong>Height:</strong> {{rocket.height}} m</mat-list-item>
+    <mat-list-item><strong>Diameter:</strong> {{rocket.diameter}} m</mat-list-item>
+    <mat-list-item><strong>Mass:</strong> {{rocket.mass}} kg</mat-list-item>
+    <mat-list-item><strong>Engines:</strong> {{rocket.engines}}</mat-list-item>
+  </mat-list>
+</div>

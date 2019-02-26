@@ -1,0 +1,19 @@
+<div style="display:flex; flex-direction: column; justify-content: center; align-items: center; margin-top:5rem;">
+  <div style="width:30rem;">
+    <form class="example-container">
+      <mat-form-field class="example-full-width">
+        <input matInput placeholder="Rocket id" [(ngModel)]="rocketName" name="id">
+      </mat-form-field>
+      <mat-form-field class="example-full-width">
+        <input matInput placeholder="Qr size" [(ngModel)]="size" name="size">
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="getQr()" style="width:9rem;">Generate QR</button>
+    </form>
+  </div>
+
+  <div *ngIf="loading" style="margin-top:3rem;">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <img *ngIf="image !== undefined" [src]='image' alt='Imagine QR' style="margin-top:3rem;">
+</div>
