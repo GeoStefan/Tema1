@@ -45,7 +45,10 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(1, str({"symbols": "RON", "format": 1}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogConvert(log)
+                try:
+                    db.insertLogConvert(log)
+                except:
+                    print("Cannot insert in database")
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -55,7 +58,10 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(0, str({"symbols": "RON", "format": 1}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogConvert(log)
+                try:
+                    db.insertLogConvert(log)
+                except:
+                    print("Cannot insert in database")
 
         if path.startswith("/rocket"):
             rocketId = path[path.rfind("/") + 1:]
@@ -80,7 +86,10 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(1, str({"rocketId": rocketId}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogRocket(log)
+                try:
+                    db.insertLogRocket(log)
+                except:
+                    print("Cannot insert in database")
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -90,7 +99,10 @@ class HttpHandler(BaseHTTPRequestHandler):
 
                 log = Log(0, str({"rocketId": rocketId}), result.content, result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogRocket(log)
+                try:
+                    db.insertLogRocket(log)
+                except:
+                    print("Cannot insert in database")
 
         if path == "/metrics":
             metrics = Metrics(db.metricConvert(), db.metricRocket(), db.metricQr())
@@ -128,7 +140,10 @@ class HttpHandler(BaseHTTPRequestHandler):
                 log = Log(1, str({"size": data["size"], "data": data["data"]}), result.content,
                           result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogQr(log)
+                try:
+                    db.insertLogQr(log)
+                except:
+                    print("Cannot insert in database")
             else:
                 self.send_response(result.status_code)
                 self.send_header('Content-type', 'text-html')
@@ -139,7 +154,10 @@ class HttpHandler(BaseHTTPRequestHandler):
                 log = Log(0, str({"size": data["size"], "data": data["data"]}), result.content,
                           result.elapsed.total_seconds(),
                           datetime.datetime.now())
-                db.insertLogQr(log)
+                try:
+                    db.insertLogQr(log)
+                except:
+                    print("Cannot insert in database")
 
         db.conn.close()
         return
@@ -147,10 +165,11 @@ class HttpHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200, "ok")
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
-        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.end_headers()
+        return
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ export class RocketComponent implements OnInit {
 
   rocketId: string;
   rocket: Rocket;
+  pageError: string;
 
   constructor(private webApis: WebApisService) { }
 
@@ -19,7 +20,11 @@ export class RocketComponent implements OnInit {
   }
 
   async onGetRocket() {
-    this.rocket = await this.webApis.getRocket(this.rocketId);
+    this.rocket = await this.webApis.getRocket(this.rocketId)
+      .catch(error => this.pageError = error);
+    if (this.pageError !== undefined) {
+      this.pageError = 'Eroare la request';
+    }
   }
 
 }
