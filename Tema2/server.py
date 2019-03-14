@@ -27,53 +27,30 @@ class HttpHandler(BaseHTTPRequestHandler):
         elif uri[1] == 'players' and len(uri) == 3:
             code, response = get_player(int(uri[2]))
             self.sendResponse(code, response)
-        # elif uri[3] == 'progress' and len(uri) == 4:
-        #     progress = get_progress(int(uri[2]))
-        #     if progress != None:
-        #         self.send_response(200)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps(progress).encode())
-        #     else:
-        #         self.send_response(204)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        # elif uri[4] == 'achievements' and len(uri) == 5:
-        #     achievements = get_achievements(int(uri[2]))
-        #     if achievements != None:
-        #         self.send_response(200)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps(achievements).encode())
-        #     else:
-        #         self.send_response(404)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
-        # elif uri[4] == 'achievement' and len(uri) == 6:
-        #     achievement = get_achievement(int(uri[5]), int(uri[2]))
-        #     if achievement != None:
-        #         self.send_response(200)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps(achievement).encode())
-        #     else:
-        #         self.send_response(404)
-        #         self.send_header('Content-type', 'application/json')
-        #         self.send_header('Access-Control-Allow-Origin', '*')
-        #         self.end_headers()
-        #         self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
         elif uri[1] == 'games' and len(uri) == 2:
             code, response = get_games()
-            self.sendResponse(code,response)
+            self.sendResponse(code, response)
         elif uri[1] == 'games' and len(uri) == 3:
             code, response = get_game(int(uri[2]))
-            self.sendResponse(code,response)
+            self.sendResponse(code, response)
+        elif uri[1] == 'rules' and len(uri) == 2:
+            code, response = get_rules()
+            self.sendResponse(code, response)
+        elif uri[1] == 'rules' and len(uri) == 3:
+            code, response = get_rule(int(uri[2]))
+            self.sendResponse(code, response)
+        elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 4:
+            code, response = get_players_by_game(int(uri[2]))
+            self.sendResponse(code, response)
+        elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 5:
+            code, response = get_player_by_game(int(uri[2]), int(uri[4]))
+            self.sendResponse(code, response)
+        elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 4:
+            code, response = get_rules_by_game(int(uri[2]))
+            self.sendResponse(code, response)
+        elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 5:
+            code, response = get_rule_by_game(int(uri[2]), int(uri[4]))
+            self.sendResponse(code, response)
         else:
             self.sendResponse(404, {'message': 'Page not found'})
 
@@ -98,6 +75,9 @@ class HttpHandler(BaseHTTPRequestHandler):
                     elif uri[1] == 'games' and len(uri) == 2:
                         code, response = post_game(data)
                         self.sendResponse(code, response)
+                    elif uri[1] == 'rules' and len(uri) == 2:
+                        code, response = post_rule(data)
+                        self.sendResponse(code, response)
         except Exception as err:
             self.sendResponse(500, str(err))
 
@@ -117,14 +97,19 @@ class HttpHandler(BaseHTTPRequestHandler):
                     self.sendResponse(415, 'Content type ' + self.headers['Content-type'] + ' not supported')
                 if type:
                     if uri[1] == 'players' and len(uri) == 3:
-                        code, response = put_player(data,int(uri[2]))
+                        code, response = put_player(data, int(uri[2]))
                         self.sendResponse(code, response)
                     elif uri[1] == 'players' and len(uri) == 2:
                         self.sendResponse(405, 'Method not allowed')
                     elif uri[1] == 'games' and len(uri) == 3:
-                        code ,response = put_game(data,int(uri[2]))
+                        code, response = put_game(data, int(uri[2]))
                         self.sendResponse(code, response)
                     elif uri[1] == 'games' and len(uri) == 2:
+                        self.sendResponse(405, 'Method not allowed')
+                    elif uri[1] == 'rules' and len(uri) == 3:
+                        code, response = put_rule(data, int(uri[2]))
+                        self.sendResponse(code, response)
+                    elif uri[1] == 'rules' and len(uri) == 2:
                         self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
@@ -147,6 +132,11 @@ class HttpHandler(BaseHTTPRequestHandler):
                 elif uri[1] == 'games' and len(uri) == 3:
                     code, response = delete_game(int(uri[2]))
                     self.sendResponse(code, response)
+                elif uri[1] == 'rules' and len(uri) == 3:
+                    code, response = delete_rule(int(uri[2]))
+                    self.sendResponse(code, response)
+                elif uri[1] == 'rules' and len(uri) == 2:
+                    self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
 

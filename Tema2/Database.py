@@ -1,5 +1,4 @@
 from pony.orm import *
-import time
 
 db = Database()
 
@@ -26,24 +25,6 @@ class Rule(db.Entity):
     id = PrimaryKey(int, auto=True)
     description = Required(str)
     game = Required(Game)
-
-
-# class Progress(db.Entity):
-#     id = PrimaryKey(int, auto=True)
-#     biggestScore = Required(int, default=0)
-#     gold = Required(int, default=0)
-#     timePlayed = Required(int, default=0)
-#     lastSave = Required(int, default=int(time.time()))
-#     player = Required(Player)
-#     achievements = Set('Achievement')
-#
-#
-# class Achievement(db.Entity):
-#     id = PrimaryKey(int, auto=True)
-#     name = Required(str)
-#     completion = Required(int)
-#     description = Required(str)
-#     progress = Required(Progress)
 
 
 class ProgressView:
@@ -87,31 +68,6 @@ def add_player(name, password, email, score, gameId):
     return player.id
 
 
-# @db_session
-# def add_progress(playerID, biggestScore, gold, timePlayed, lastSave, achievementIDs):
-#     player = Player.get(id=playerID)
-#     achievements = []
-#     for a in achievementIDs:
-#         achievements += [Achievement.get(id=a)]
-#     if len(achievements) == 0:
-#         progress = Progress(biggestScore=biggestScore, gold=gold, timePlayed=timePlayed, lastSave=lastSave,
-#                             player=player)
-#     else:
-#         progress = Progress(biggestScore=biggestScore, gold=gold, timePlayed=timePlayed, lastSave=lastSave,
-#                             player=player,
-#                             achievements=achievements)
-#     commit()
-#     return progress.id
-#
-#
-# @db_session
-# def add_achievement(name, description, completion, progressID):
-#     progress = Progress.get(id=progressID)
-#     achievement = Achievement(name=name, description=description, completion=completion, progress=progress)
-#     commit()
-#     return achievement.id
-
-
 @db_session
 def update_game(id, name, creator, description):
     game = Game.get(id=id)
@@ -145,33 +101,6 @@ def update_rule(id, description, gameId):
     return rule.id
 
 
-# @db_session
-# def update_progress(id, playerID, biggestScore=0, gold=0, timePlayed=0, lastSave=int(time.time()), *achievementIDs):
-#     player = Player.get(id=playerID)
-#     achievements = []
-#     for a in achievementIDs:
-#         achievements += [Achievement.get(id=a)]
-#     progress = Progress.get(id=id)
-#     progress.player = player
-#     progress.biggestScore = biggestScore
-#     progress.gold = gold
-#     progress.timePlayed = timePlayed
-#     progress.lastSave = lastSave
-#     progress.achievements = achievements
-#     commit()
-#
-#
-# @db_session
-# def update_achievement(id, name, description, completion, progressID):
-#     progress = Progress.get(id=progressID)
-#     achievement = Achievement.get(id=id)
-#     achievement.name = name
-#     achievement.description = description
-#     achievement.completion = completion
-#     achievement.progress = progress
-#     commit()
-
-
 @db_session
 def delete_game(id):
     Game[id].delete()
@@ -185,16 +114,6 @@ def delete_player(id):
 @db_session
 def delete_rule(id):
     Rule[id].delete()
-
-
-# @db_session
-# def delete_progress(id):
-#     Progress[id].delete()
-#
-#
-# @db_session
-# def delete_achievement(id):
-#     Achievement[id].delete()
 
 
 @db_session
@@ -219,7 +138,8 @@ def select_players():
 
 @db_session
 def select_players_by_game(gameId):
-    return Player.select(game=gameId)[:]
+    game = Game[gameId]
+    return Player.select(lambda p: p.game == game)[:]
 
 
 @db_session
@@ -228,13 +148,20 @@ def select_rule(id):
 
 
 @db_session
+def select_rules():
+    return Rule.select()[:]
+
+
+@db_session
 def select_rules_by_game(gameId):
-    return Rule.select(game=gameId)[:]
+    game = Game[gameId]
+    return Rule.select(lambda r: r.game == game)[:]
 
 
 @db_session
 def check_game(id):
     return Game.exists(id=id)
+
 
 @db_session
 def check_game_by_name(name):
@@ -246,49 +173,24 @@ def check_player_by_name(name):
     return Player.exists(name=name)
 
 
-# @db_session
-# def select_progress_by_player(playerID):
-#     p = Progress.get(player=playerID)
-#     # return {'id': p.id,
-#     #         'biggestScore': p.biggestScore,
-#     #         'gold': p.gold,
-#     #         'timePlayed': p.timePlayed,
-#     #         'lastSave': p.lastSave,
-#     #         'playerId': p.player.id}
-#     return ProgressView(p.id, p.biggestScore, p.gold, p.timePlayed, p.lastSave, p.player)
-#
-#
-# @db_session
-# def select_achievement(id):
-#     return achievement_to_dict(Achievement[id])
-#
-#
-# @db_session
-# def select_achievements(progressID):
-#     achievements = []
-#     for a in Achievement.select(lambda a: a.progress.id == progressID):
-#         achievements += [achievement_to_dict(a)]
-#     return achievements
+@db_session
+def check_player_by_game(gameId):
+    return Player.exists(game=gameId)
+
+
+@db_session
+def check_rule(id):
+    return Rule.exists(id=id)
+
+
+@db_session
+def check_rule_by_game(gameId):
+    return Rule.exists(game=gameId)
 
 
 @db_session
 def check_player(id):
     return Player.exists(id=id)
-
-
-# @db_session
-# def check_progress_by_player(playerID):
-#     return Progress.exists(player=playerID)
-#
-#
-# @db_session
-# def check_achievement_by_progress(progressID):
-#     return Achievement.exists(progress=progressID)
-#
-#
-# @db_session
-# def check_achievement(id):
-#     return Achievement.exists(id=id)
 
 
 def achievement_to_dict(a):
@@ -301,18 +203,10 @@ def achievement_to_dict(a):
 db.bind(provider='sqlite', filename='db.sqlite', create_db=True)
 db.generate_mapping(create_tables=True)
 if __name__ == '__main__':
-    # playerID = add_player('John', 'mypass', 'john@gmail.com')
-    # progressID = add_progress(playerID, 200, 2, 23)
-    # add_achievement('Score above 1000', 'Ai jucat putin', progressID)
-    # update_progress(5,11,2500,34,49,432423424,2)
-    # delete_progress(2)
-    # with db_session:
-    #     select(p for p in Player)[:].show()
-    #     print('\n')
-    #     select(p for p in Progress)[:].show()
-    #     print('\n')
-    #     select(a for a in Achievement)[:].show()
-    # print(select_player(1))
-    # print(check_player(1))
-    # print(select_players())
-    print('main')
+    gameID1 = add_game('Snake', 'Unknown', 'oldies but goldies')
+    gameID2 = add_game('Minecraft', 'Mojang', 'craft and mine')
+    playerID1 = add_player('Dummy', 'parola-puternica', 'dummy@email.com', 20, gameID1)
+    playerID2 = add_player('Luci', '10*4564k d', 'luci@email.com', 100, gameID1)
+    add_rule('Do not hit the walls', gameID1)
+    add_rule('Do not eat yourself', gameID1)
+    add_rule('Do not destroy other players buildings', gameID2)
