@@ -1,5 +1,5 @@
 import http.server
-from http.server import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from services import *
 import json
@@ -17,42 +17,43 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(message).encode())
 
     def do_GET(self):
-        o = urlparse(self.path)
-        print(o)
-        uri = o.path.strip().split('/')
-        print(uri)
-        if uri[1] == 'players' and len(uri) == 2:
-            code, response = get_players()
-            self.sendResponse(code, response)
-        elif uri[1] == 'players' and len(uri) == 3:
-            code, response = get_player(int(uri[2]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and len(uri) == 2:
-            code, response = get_games()
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and len(uri) == 3:
-            code, response = get_game(int(uri[2]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'rules' and len(uri) == 2:
-            code, response = get_rules()
-            self.sendResponse(code, response)
-        elif uri[1] == 'rules' and len(uri) == 3:
-            code, response = get_rule(int(uri[2]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 4:
-            code, response = get_players_by_game(int(uri[2]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 5:
-            code, response = get_player_by_game(int(uri[2]), int(uri[4]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 4:
-            code, response = get_rules_by_game(int(uri[2]))
-            self.sendResponse(code, response)
-        elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 5:
-            code, response = get_rule_by_game(int(uri[2]), int(uri[4]))
-            self.sendResponse(code, response)
-        else:
-            self.sendResponse(404, {'message': 'Page not found'})
+        try:
+            o = urlparse(self.path)
+            uri = o.path.strip().split('/')
+            if uri[1] == 'players' and len(uri) == 2:
+                code, response = get_players()
+                self.sendResponse(code, response)
+            elif uri[1] == 'players' and len(uri) == 3:
+                code, response = get_player(int(uri[2]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and len(uri) == 2:
+                code, response = get_games()
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and len(uri) == 3:
+                code, response = get_game(int(uri[2]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'rules' and len(uri) == 2:
+                code, response = get_rules()
+                self.sendResponse(code, response)
+            elif uri[1] == 'rules' and len(uri) == 3:
+                code, response = get_rule(int(uri[2]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 4:
+                code, response = get_players_by_game(int(uri[2]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 5:
+                code, response = get_player_by_game(int(uri[2]), int(uri[4]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 4:
+                code, response = get_rules_by_game(int(uri[2]))
+                self.sendResponse(code, response)
+            elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 5:
+                code, response = get_rule_by_game(int(uri[2]), int(uri[4]))
+                self.sendResponse(code, response)
+            else:
+                self.sendResponse(404, {'message': 'Page not found'})
+        except Exception as err:
+            self.sendResponse(500, str(err))
 
     def do_POST(self):
         try:
@@ -145,6 +146,6 @@ PORT = 9010
 if __name__ == "__main__":
     handler = HttpHandler
 
-    with http.server.ThreadingHTTPServer(("", PORT), handler) as httpd:
+    with HTTPServer(("", PORT), handler) as httpd:
         print("serving at port", PORT)
         httpd.serve_forever()

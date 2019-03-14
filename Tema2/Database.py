@@ -200,7 +200,7 @@ def achievement_to_dict(a):
             }
 
 
-db.bind(provider='sqlite', filename='db.sqlite', create_db=True)
+db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 db.generate_mapping(create_tables=True)
 if __name__ == '__main__':
     gameID1 = add_game('Snake', 'Unknown', 'oldies but goldies')
