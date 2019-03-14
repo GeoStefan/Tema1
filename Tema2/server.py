@@ -22,55 +22,58 @@ class HttpHandler(BaseHTTPRequestHandler):
         uri = o.path.strip().split('/')
         print(uri)
         if uri[1] == 'players' and len(uri) == 2:
-            players = get_players()
-            self.sendResponse(200, players)
-        elif uri[1] == 'player' and len(uri) == 3:
-            player = get_player(int(uri[2]))
-            if player != None:
-                self.sendResponse(200, player)
-            else:
-                self.sendResponse(404, 'Player not found')
-        elif uri[3] == 'progress' and len(uri) == 4:
-            progress = get_progress(int(uri[2]))
-            if progress != None:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(progress).encode())
-            else:
-                self.send_response(204)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-        elif uri[4] == 'achievements' and len(uri) == 5:
-            achievements = get_achievements(int(uri[2]))
-            if achievements != None:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(achievements).encode())
-            else:
-                self.send_response(404)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
-        elif uri[4] == 'achievement' and len(uri) == 6:
-            achievement = get_achievement(int(uri[5]), int(uri[2]))
-            if achievement != None:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(achievement).encode())
-            else:
-                self.send_response(404)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
+            code, response = get_players()
+            self.sendResponse(code, response)
+        elif uri[1] == 'players' and len(uri) == 3:
+            code, response = get_player(int(uri[2]))
+            self.sendResponse(code, response)
+        # elif uri[3] == 'progress' and len(uri) == 4:
+        #     progress = get_progress(int(uri[2]))
+        #     if progress != None:
+        #         self.send_response(200)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps(progress).encode())
+        #     else:
+        #         self.send_response(204)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        # elif uri[4] == 'achievements' and len(uri) == 5:
+        #     achievements = get_achievements(int(uri[2]))
+        #     if achievements != None:
+        #         self.send_response(200)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps(achievements).encode())
+        #     else:
+        #         self.send_response(404)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
+        # elif uri[4] == 'achievement' and len(uri) == 6:
+        #     achievement = get_achievement(int(uri[5]), int(uri[2]))
+        #     if achievement != None:
+        #         self.send_response(200)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps(achievement).encode())
+        #     else:
+        #         self.send_response(404)
+        #         self.send_header('Content-type', 'application/json')
+        #         self.send_header('Access-Control-Allow-Origin', '*')
+        #         self.end_headers()
+        #         self.wfile.write(json.dumps({'message': 'Page not found'}).encode())
+        elif uri[1] == 'games' and len(uri) == 2:
+            code, response = get_games()
+            self.sendResponse(code,response)
+        elif uri[1] == 'games' and len(uri) == 3:
+            code, response = get_game(int(uri[2]))
+            self.sendResponse(code,response)
         else:
             self.sendResponse(404, {'message': 'Page not found'})
 
@@ -92,6 +95,9 @@ class HttpHandler(BaseHTTPRequestHandler):
                     if uri[1] == 'players' and len(uri) == 2:
                         code, response = post_player(data)
                         self.sendResponse(code, response)
+                    elif uri[1] == 'games' and len(uri) == 2:
+                        code, response = post_game(data)
+                        self.sendResponse(code, response)
         except Exception as err:
             self.sendResponse(500, str(err))
 
@@ -110,10 +116,15 @@ class HttpHandler(BaseHTTPRequestHandler):
                 except Exception as err:
                     self.sendResponse(415, 'Content type ' + self.headers['Content-type'] + ' not supported')
                 if type:
-                    if uri[1] == 'player' and len(uri) == 3:
-                        code, response = put_player(data)
+                    if uri[1] == 'players' and len(uri) == 3:
+                        code, response = put_player(data,int(uri[2]))
                         self.sendResponse(code, response)
                     elif uri[1] == 'players' and len(uri) == 2:
+                        self.sendResponse(405, 'Method not allowed')
+                    elif uri[1] == 'games' and len(uri) == 3:
+                        code ,response = put_game(data,int(uri[2]))
+                        self.sendResponse(code, response)
+                    elif uri[1] == 'games' and len(uri) == 2:
                         self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
@@ -126,11 +137,16 @@ class HttpHandler(BaseHTTPRequestHandler):
             if length != 0:
                 self.sendResponse(415, 'Content type ' + self.headers['Content-type'] + ' not supported')
             else:
-                if uri[1] == 'player' and len(uri) == 3:
+                if uri[1] == 'players' and len(uri) == 3:
                     code, response = delete_player(int(uri[2]))
                     self.sendResponse(code, response)
                 elif uri[1] == 'players' and len(uri) == 2:
                     self.sendResponse(405, 'Method not allowed')
+                elif uri[1] == 'games' and len(uri) == 2:
+                    self.sendResponse(405, 'Method not allowed')
+                elif uri[1] == 'games' and len(uri) == 3:
+                    code, response = delete_game(int(uri[2]))
+                    self.sendResponse(code, response)
         except Exception as err:
             self.sendResponse(500, str(err))
 
