@@ -29,6 +29,24 @@ class Achievement(db.Entity):
     progress = Required(Progress)
 
 
+class ProgressView:
+    def __init__(self, id, biggestScore, gold, timePlayed, lastSave, player):
+        self.id = id
+        self.biggestScore = biggestScore
+        self.gold = gold
+        self.timePlayed = timePlayed
+        self.lastSave = lastSave
+        self.player = player
+
+
+class PlayeView:
+    def __init__(self, id, name, password, email):
+        self.id = id
+        self.name = name
+        self.password = password
+        self.email = email
+
+
 @db_session
 def add_player(name, password, email):
     player = Player(name=name, password=password, email=email)
@@ -37,7 +55,7 @@ def add_player(name, password, email):
 
 
 @db_session
-def add_progress(playerID, biggestScore=0, gold=0, timePlayed=0, lastSave=int(time.time()), *achievementIDs):
+def add_progress(playerID, biggestScore, gold, timePlayed, lastSave, achievementIDs):
     player = Player.get(id=playerID)
     achievements = []
     for a in achievementIDs:
@@ -68,6 +86,7 @@ def update_player(id, name, password, email):
     player.password = password
     player.email = email
     commit()
+    return player.id
 
 
 @db_session
@@ -113,16 +132,42 @@ def delete_achievement(id):
 
 @db_session
 def select_player(id):
-    p = Player[id]
-    return export_player(p)
+    return Player[id]
 
 
 @db_session
 def select_players():
-    players = []
-    for p in Player.select():
-        players += [export_player(p)]
-    return players
+    return Player.select()[:]
+
+
+@db_session
+def check_player_by_name(name):
+    return Player.exists(name=name)
+
+
+@db_session
+def select_progress_by_player(playerID):
+    p = Progress.get(player=playerID)
+    # return {'id': p.id,
+    #         'biggestScore': p.biggestScore,
+    #         'gold': p.gold,
+    #         'timePlayed': p.timePlayed,
+    #         'lastSave': p.lastSave,
+    #         'playerId': p.player.id}
+    return ProgressView(p.id, p.biggestScore, p.gold, p.timePlayed, p.lastSave, p.player)
+
+
+@db_session
+def select_achievement(id):
+    return achievement_to_dict(Achievement[id])
+
+
+@db_session
+def select_achievements(progressID):
+    achievements = []
+    for a in Achievement.select(lambda a: a.progress.id == progressID):
+        achievements += [achievement_to_dict(a)]
+    return achievements
 
 
 @db_session
@@ -130,26 +175,31 @@ def check_player(id):
     return Player.exists(id=id)
 
 
-def export_player(p):
-    return {'id': p.id,
-            'name': p.name,
-            'password': p.password,
-            'email': p.email}
+@db_session
+def check_progress_by_player(playerID):
+    return Progress.exists(player=playerID)
 
 
-def export_progress(p):
-    return {'id': p.id,
-            'biggestScore': p.biggestScore,
-            'gold': p.gold,
-            'timePlayed': p.timePlayed,
-            'lastSave': p.lastSave,
-            'playerId': p.player.id}
+@db_session
+def check_achievement_by_progress(progressID):
+    return Achievement.exists(progress=progressID)
+
+
+@db_session
+def check_achievement(id):
+    return Achievement.exists(id=id)
+
+
+def achievement_to_dict(a):
+    return {'id': a.id,
+            'name': a.name,
+            'description': a.description,
+            }
 
 
 db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 db.generate_mapping(create_tables=True)
 if __name__ == '__main__':
-
     # playerID = add_player('John', 'mypass', 'john@gmail.com')
     # progressID = add_progress(playerID, 200, 2, 23)
     # add_achievement('Score above 1000', 'Ai jucat putin', progressID)
