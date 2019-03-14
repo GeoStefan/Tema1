@@ -3,6 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from services import *
 import json
+import re
 
 
 class HttpHandler(BaseHTTPRequestHandler):
@@ -24,32 +25,53 @@ class HttpHandler(BaseHTTPRequestHandler):
                 code, response = get_players()
                 self.sendResponse(code, response)
             elif uri[1] == 'players' and len(uri) == 3:
-                code, response = get_player(int(uri[2]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_player(int(uri[2]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'games' and len(uri) == 2:
                 code, response = get_games()
                 self.sendResponse(code, response)
             elif uri[1] == 'games' and len(uri) == 3:
-                code, response = get_game(int(uri[2]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_game(int(uri[2]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'rules' and len(uri) == 2:
                 code, response = get_rules()
                 self.sendResponse(code, response)
             elif uri[1] == 'rules' and len(uri) == 3:
-                code, response = get_rule(int(uri[2]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_rule(int(uri[2]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 4:
-                code, response = get_players_by_game(int(uri[2]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_players_by_game(int(uri[2]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'games' and uri[3] == 'players' and len(uri) == 5:
-                code, response = get_player_by_game(int(uri[2]), int(uri[4]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]) or not re.match('^[\d]+$', uri[4]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_player_by_game(int(uri[2]), int(uri[4]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 4:
-                code, response = get_rules_by_game(int(uri[2]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_rules_by_game(int(uri[2]))
+                    self.sendResponse(code, response)
             elif uri[1] == 'games' and uri[3] == 'rules' and len(uri) == 5:
-                code, response = get_rule_by_game(int(uri[2]), int(uri[4]))
-                self.sendResponse(code, response)
+                if not re.match('^[\d]+$', uri[2]) or not re.match('^[\d]+$', uri[4]):
+                    self.sendResponse(400, 'Invalid id')
+                else:
+                    code, response = get_rule_by_game(int(uri[2]), int(uri[4]))
+                    self.sendResponse(code, response)
             else:
                 self.sendResponse(404, {'message': 'Page not found'})
         except Exception as err:
@@ -79,6 +101,8 @@ class HttpHandler(BaseHTTPRequestHandler):
                     elif uri[1] == 'rules' and len(uri) == 2:
                         code, response = post_rule(data)
                         self.sendResponse(code, response)
+                    else:
+                        self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
 
@@ -112,6 +136,8 @@ class HttpHandler(BaseHTTPRequestHandler):
                         self.sendResponse(code, response)
                     elif uri[1] == 'rules' and len(uri) == 2:
                         self.sendResponse(405, 'Method not allowed')
+                    else:
+                        self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
 
@@ -124,19 +150,30 @@ class HttpHandler(BaseHTTPRequestHandler):
                 self.sendResponse(415, 'Content type ' + self.headers['Content-type'] + ' not supported')
             else:
                 if uri[1] == 'players' and len(uri) == 3:
-                    code, response = delete_player(int(uri[2]))
-                    self.sendResponse(code, response)
+                    if not re.match('^[\d]+$', uri[2]):
+                        self.sendResponse(400, 'Invalid id')
+                    else:
+                        code, response = delete_player(int(uri[2]))
+                        self.sendResponse(code, response)
                 elif uri[1] == 'players' and len(uri) == 2:
                     self.sendResponse(405, 'Method not allowed')
                 elif uri[1] == 'games' and len(uri) == 2:
                     self.sendResponse(405, 'Method not allowed')
                 elif uri[1] == 'games' and len(uri) == 3:
-                    code, response = delete_game(int(uri[2]))
-                    self.sendResponse(code, response)
+                    if not re.match('^[\d]+$', uri[2]):
+                        self.sendResponse(400, 'Invalid id')
+                    else:
+                        code, response = delete_game(int(uri[2]))
+                        self.sendResponse(code, response)
                 elif uri[1] == 'rules' and len(uri) == 3:
-                    code, response = delete_rule(int(uri[2]))
-                    self.sendResponse(code, response)
+                    if not re.match('^[\d]+$', uri[2]):
+                        self.sendResponse(400, 'Invalid id')
+                    else:
+                        code, response = delete_rule(int(uri[2]))
+                        self.sendResponse(code, response)
                 elif uri[1] == 'rules' and len(uri) == 2:
+                    self.sendResponse(405, 'Method not allowed')
+                else:
                     self.sendResponse(405, 'Method not allowed')
         except Exception as err:
             self.sendResponse(500, str(err))
